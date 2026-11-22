@@ -1,0 +1,56 @@
+services:
+  app:
+    build: .
+    image: absam-ai-video-editor:local
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8080}:8080"
+    environment:
+      PORT: 8080
+      DATA_DIR: /app/data
+      APP_PASSWORD: "${APP_PASSWORD:-}"
+      VIDEO_PROVIDER: "${VIDEO_PROVIDER:-huggingface-ltx}"
+      HF_LTX_SPACE_ID: "${HF_LTX_SPACE_ID:-Upsampler/ltx-video}"
+      HF_LTX_SPACE_URL: "${HF_LTX_SPACE_URL:-https://upsampler-ltx-video.hf.space}"
+      HF_LTX_HIGH_RES: "${HF_LTX_HIGH_RES:-0}"
+      # Optional backend-only token from a free Hugging Face account.
+      HF_TOKEN: "${HF_TOKEN:-}"
+      HF_LTX_TOKEN: "${HF_LTX_TOKEN:-}"
+      FONTS_DIR: /usr/share/fonts/noto
+      FFMPEG_PRESET: "${FFMPEG_PRESET:-veryfast}"
+      FFMPEG_CRF: "${FFMPEG_CRF:-21}"
+      # Optional S3 / MinIO. Leave S3_ENDPOINT empty for local volumes.
+      S3_ENDPOINT: "${S3_ENDPOINT:-}"
+      S3_BUCKET: "${S3_BUCKET:-absam-video}"
+      S3_ACCESS_KEY: "${S3_ACCESS_KEY:-}"
+      S3_SECRET_KEY: "${S3_SECRET_KEY:-}"
+      S3_FORCE_PATH_STYLE: "${S3_FORCE_PATH_STYLE:-true}"
+      # Optional local Whisper.cpp (mount a model + binary to use it).
+      WHISPER_BIN: "${WHISPER_BIN:-}"
+      WHISPER_MODEL: "${WHISPER_MODEL:-}"
+    volumes:
+      - absam_data:/app/data
+      - ./models:/app/models:ro
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  minio:
+    image: quay.io/minio/minio:latest
+    profiles: ["storage"]
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: "${S3_ACCESS_KEY:-absam}"
+      MINIO_ROOT_PASSWORD: "${S3_SECRET_KEY:-absam-secret}"
+    volumes:
+      - minio_data:/data
+
+volumes:
+  absam_data:
+  minio_data:

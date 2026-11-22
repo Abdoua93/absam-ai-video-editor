@@ -1,0 +1,9 @@
+node_modules/
+data/
+.git/
+.env
+models/
+assets/fonts/
+*.log
+tests/
+screenshots/

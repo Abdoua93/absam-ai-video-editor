@@ -1,0 +1,16 @@
+{
+  "name": "ABSAM AI VIDEO EDITOR",
+  "short_name": "ABSAM AI",
+  "description": "Mobile-first open-source video editor with Arabic RTL subtitles",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#090c14",
+  "theme_color": "#0b0f1a",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0f1a">
+  <meta name="description" content="ABSAM AI Video Editor — mobile-first, open-source video editing with Arabic subtitles, powered by FFmpeg.">
+  <title>ABSAM AI VIDEO EDITOR</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div id="password-gate" class="gate hidden">
+    <div class="gate-card">
+      <div class="brand-mark">A</div>
+      <h2 data-i18n="gateTitle">محمي بكلمة مرور</h2>
+      <p data-i18n="gateHint">أدخل كلمة مرور التطبيق للمتابعة</p>
+      <input id="password-input" type="password" autocomplete="current-password" data-i18n-ph="passwordPlaceholder" placeholder="كلمة المرور">
+      <button id="password-submit" class="btn primary" data-i18n="unlock">فتح</button>
+      <p id="password-error" class="error-text"></p>
+    </div>
+  </div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">A</div>
+      <div>
+        <h1>ABSAM <span data-i18n="brandAi">AI</span></h1>
+        <p data-i18n="brandSub">محرر فيديو ذكي للجوال</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="lang-toggle" class="icon-btn" aria-label="language">EN</button>
+      <button id="new-project" class="icon-btn" aria-label="new project" title="New project">＋</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="status-strip">
+      <span id="health-dot" class="dot"></span>
+      <span id="health-text" data-i18n="checking">جارٍ فحص الخادم…</span>
+      <button id="new-project-inline" class="link-btn" data-i18n="newProject">مشروع جديد</button>
+    </div>
+
+    <nav class="stepper" aria-label="steps">
+      <button class="step active" data-scroll="upload"><b>1</b><span data-i18n="stepUpload">ارفع</span></button>
+      <button class="step" data-scroll="trim"><b>2</b><span data-i18n="stepTrim">قصّ</span></button>
+      <button class="step" data-scroll="subs"><b>3</b><span data-i18n="stepSubs">ترجمة</span></button>
+      <button class="step" data-scroll="music"><b>4</b><span data-i18n="stepMusic">موسيقى</span></button>
+      <button class="step" data-scroll="export"><b>5</b><span data-i18n="stepExport">تصدير</span></button>
+    </nav>
+
+    <section id="upload" class="card">
+      <div class="card-head">
+        <span class="step-num">1</span>
+        <div><h2 data-i18n="uploadTitle">ارفع مقاطع الفيديو</h2><p data-i18n="uploadHint">اختر عدة مقاطع — سيتم ترتيبها تلقائياً</p></div>
+      </div>
+      <label id="dropzone" class="dropzone">
+        <input id="video-input" type="file" accept="video/*" multiple hidden>
+        <div class="drop-icon">↥</div>
+        <strong data-i18n="dropTitle">اضغط لاختيار الفيديوهات</strong>
+        <span data-i18n="dropSub">MP4، MOV، WEBM — حتى 20 مقطعاً</span>
+      </label>
+      <div id="upload-progress" class="progress-line hidden"><i></i></div>
+      <div id="clip-list" class="clip-list"></div>
+      <p id="empty-clips" class="empty" data-i18n="noClips">لا توجد مقاطع بعد.</p>
+    </section>
+
+    <section id="trim" class="card">
+      <div class="card-head">
+        <span class="step-num">2</span>
+        <div><h2 data-i18n="trimTitle">القصّ الذكي التلقائي</h2><p data-i18n="trimHint">يحذف الصمت ويختار أفضل اللحظات محلياً</p></div>
+      </div>
+      <label class="switch-row">
+        <span><b data-i18n="autoTrim">تفعيل القصّ التلقائي</b><small data-i18n="autoTrimSub">كشف الصمت ومشاهد الحركة</small></span>
+        <input id="auto-trim" type="checkbox" checked>
+      </label>
+      <div class="field-grid">
+        <label><span data-i18n="targetDuration">المدة المستهدفة (ث)</span><input id="target-seconds" type="number" min="5" max="600" value="60" inputmode="numeric"></label>
+        <label><span data-i18n="maxSegment">أطول مقطع (ث)</span><input id="max-clip-seconds" type="number" min="2" max="120" value="15" inputmode="numeric"></label>
+      </div>
+      <button id="analyze-btn" class="btn primary full" data-i18n="analyzeBtn">حلّل المقاطع واقترح القصّ</button>
+      <div id="trim-result" class="result hidden"></div>
+    </section>
+
+    <section id="subs" class="card">
+      <div class="card-head">
+        <span class="step-num">3</span>
+        <div><h2 data-i18n="subsTitle">ترجمة عربية RTL</h2><p data-i18n="subsHint">النص يُكتب من اليمين إلى اليسار ويُحرق داخل الفيديو</p></div>
+      </div>
+      <label class="field"><span data-i18n="subtitleMode">مصدر الترجمة</span>
+        <select id="subtitle-mode">
+          <option value="none" data-i18n="subNone">بدون ترجمة</option>
+          <option value="provided" data-i18n="subProvided">نص أو ملف SRT</option>
+          <option value="whisper" data-i18n="subWhisper">Whisper محلي (بدون إنترنت)</option>
+        </select>
+      </label>
+      <div id="provided-box" class="sub-box">
+        <textarea id="subtitle-text" dir="rtl" lang="ar" rows="5" data-i18n-ph="subPlaceholder" placeholder="اكتب الترجمة هنا، سطراً لكل جملة...&#10;أو الصق ملف SRT بعلامات الوقت"></textarea>
+        <div class="inline-actions">
+          <label class="btn ghost file-btn"><span data-i18n="chooseSrt">ملف SRT / VTT</span><input id="subtitle-file" type="file" accept=".srt,.vtt,.txt" hidden></label>
+          <button id="apply-subs" class="btn small" data-i18n="applySubs">تطبيق الترجمة</button>
+        </div>
+        <label class="switch-row compact">
+          <span><b data-i18n="rtlToggle">اتجاه RTL</b></span>
+          <input id="subtitle-rtl" type="checkbox" checked>
+        </label>
+        <label class="field"><span data-i18n="fontSize">حجم الخط</span><input id="font-size" type="range" min="28" max="80" value="52"></label>
+      </div>
+      <div id="whisper-box" class="notice hidden" data-i18n="whisperHint">يحتاج تثبيت Whisper.cpp محلياً. راجع ملف README.</div>
+      <p id="subs-count" class="hint"></p>
+    </section>
+
+    <section id="music" class="card">
+      <div class="card-head">
+        <span class="step-num">4</span>
+        <div><h2 data-i18n="musicTitle">الموسيقى الخلفية</h2><p data-i18n="musicHint">ارفع موسيقاك أو استخدم نغمة مولّدة مجاناً</p></div>
+      </div>
+      <label class="field"><span data-i18n="musicMode">المصدر</span>
+        <select id="music-mode">
+          <option value="upload" data-i18n="musicUpload">ملف صوتي مرفوع</option>
+          <option value="ambient" data-i18n="musicAmbient">نغمة هادئة مولّدة</option>
+          <option value="none" data-i18n="musicNone">بدون موسيقى</option>
+        </select>
+      </label>
+      <div id="music-upload-box" class="sub-box">
+        <label class="btn ghost file-btn full"><span data-i18n="chooseAudio">اختر ملف MP3 / M4A / WAV</span><input id="music-file" type="file" accept="audio/*" hidden></label>
+        <p id="music-name" class="hint"></p>
+      </div>
+      <label class="field"><span data-i18n="volume">مستوى الصوت <b id="volume-value">16%</b></span><input id="music-volume" type="range" min="0" max="60" value="16"></label>
+    </section>
+
+    <section id="export" class="card">
+      <div class="card-head">
+        <span class="step-num">5</span>
+        <div><h2 data-i18n="exportTitle">التصدير MP4 — 1080p</h2><p data-i18n="exportHint">H.264 + AAC، متوافق مع كل الهواتف</p></div>
+      </div>
+      <label class="field"><span data-i18n="quality">الجودة</span>
+        <select id="quality">
+          <option value="fast" data-i18n="qualityFast">سريعة (أصغر حجماً)</option>
+          <option value="balanced" selected data-i18n="qualityBalanced">متوازنة</option>
+          <option value="high" data-i18n="qualityHigh">عالية</option>
+        </select>
+      </label>
+      <button id="render-btn" class="btn accent full" data-i18n="renderBtn">ابدأ التصدير</button>
+      <div id="job-card" class="job-card hidden">
+        <div class="job-top"><span id="job-stage" data-i18n="waiting">في الانتظار…</span><b id="job-percent">0%</b></div>
+        <div class="progress-line"><i id="job-bar"></i></div>
+        <details id="job-log-box"><summary data-i18n="details">تفاصيل المعالجة</summary><pre id="job-log"></pre></details>
+        <div id="job-actions" class="inline-actions hidden">
+          <a id="download-link" class="btn primary" download href="#"><span data-i18n="download">تنزيل MP4</span></a>
+          <a id="open-link" class="btn ghost" target="_blank" rel="noopener" href="#"><span data-i18n="openVideo">فتح</span></a>
+        </div>
+      </div>
+    </section>
+
+    <p class="footer-note" data-i18n="footer">مفتوح المصدر بالكامل · FFmpeg محلي · بدون واجهات مدفوعة</p>
+  </main>
+
+  <div class="bottom-bar">
+    <button id="primary-action" class="btn accent full" data-i18n="analyzeBtn">حلّل المقاطع واقترح القصّ</button>
+  </div>
+  <div id="toast" class="toast hidden"></div>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
