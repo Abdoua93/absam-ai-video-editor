@@ -11,3 +11,4 @@ public/studio/
 
 # Backup files
 *.bak
+backups/

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ABSAM AI VIDEO</string>
+    <string name="title_activity_main">ABSAM AI VIDEO</string>
+    <string name="package_name">com.absam.aivideo</string>
+    <string name="custom_url_scheme">com.absam.aivideo</string>
+</resources>
